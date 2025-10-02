@@ -17,20 +17,18 @@ app.get("/download", async (req, res) => {
   }
 
   try {
-    // Nombre de archivo dinámico
+    const info = await ytdl.getInfo(url);
+    const format = ytdl.chooseFormat(info.formats, { quality: "highest" });
     const filename = `video-${Date.now()}.mp4`;
-    
-    // Indicar al navegador que es descarga
-    res.header("Content-Disposition", `attachment; filename="${filename}"`);
-    
-    // Stream del vídeo
-    ytdl(url, { format: "mp4" }).pipe(res);
+
+    res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+    res.setHeader("Content-Type", "video/mp4");
+    res.setHeader("Content-Length", format.contentLength || 0);
+
+    ytdl(url, { format }).pipe(res);
   } catch (error) {
     console.error("Error downloading video:", error);
     res.status(500).send("Error downloading video");
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
